@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Accenture Bubbles Practice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6fb;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px;
+  text-align: center;
+}
+
+.hidden { display: none; }
+
+h2 { margin: 10px 0; }
+.sub { font-size: 14px; color: #555; }
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.primary { background: #1976D2; color: #fff; }
+button.secondary { background: #9e9e9e; color: #fff; margin-top: 10px; }
+button:disabled { background: #bdbdbd; cursor: not-allowed; }
+
+/* Option cards */
+.options {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+}
+
+.opt {
+  flex: 1;
+  margin: 0 5px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.opt.active {
+  border-color: #1976D2;
+  background: #e3f2fd;
+}
+
+/* Game UI */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+#timer { color: #e53935; }
+
+#game {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.bubble {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #4CAF50;
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.bubble.selected { background: #ff5722; }
+
+#result {
+  margin-top: 20px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- ===== SELECTION SCREEN ===== -->
+<div id="selectScreen">
+  <h2>🫧 Accenture Bubbles</h2>
+
+  <div class="sub">Select Level</div>
+  <div class="options" id="levelOptions">
+    <div class="opt" data-level="1">Level 1</div>
+    <div class="opt" data-level="2">Level 2</div>
+    <div class="opt" data-level="3">Level 3</div>
+  </div>
+
+  <div class="sub">Select Questions</div>
+  <div class="options" id="questionOptions">
+    <div class="opt" data-q="15">15</div>
+    <div class="opt" data-q="20">20</div>
+    <div class="opt" data-q="25">25</div>
+  </div>
+
+  <button id="startBtn" class="primary" disabled>Start Test</button>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="gameScreen" class="hidden">
+  <div class="stats">
+    <div>Q: <span id="qno">1</span>/<span id="qtotal">0</span></div>
+    <div id="timer">14s</div>
+    <div>Score: <span id="score">0</span></div>
+  </div>
+
+  <div id="game"></div>
+
+  <button class="secondary" onclick="restart()">Restart</button>
+</div>
+
+<!-- ===== RESULT SCREEN ===== -->
+<div id="resultScreen" class="hidden">
+  <div id="result"></div>
+  <button class="primary" onclick="restart()">Restart Practice</button>
+</div>
+
+</div>
+
+<script>
+let level = null;
+let totalQuestions = null;
+let currentQ = 0;
+let score = 0;
+let timeLeft = 14;
+let timer;
+let values = [];
+let selected = [];
+
+/* ---------- Option Select / Deselect ---------- */
+document.querySelectorAll('#levelOptions .opt').forEach(opt => {
+  opt.onclick = () => toggleOption(opt, 'level');
+});
+
+document.querySelectorAll('#questionOptions .opt').forEach(opt => {
+  opt.onclick = () => toggleOption(opt, 'question');
+});
+
+function toggleOption(opt, type) {
+  const isActive = opt.classList.contains('active');
+  const group = opt.parentElement.querySelectorAll('.opt');
+
+  group.forEach(o => o.classList.remove('active'));
+
+  if (isActive) {
+    if (type === 'level') level = null;
+    else totalQuestions = null;
+  } else {
+    opt.classList.add('active');
+    if (type === 'level') level = Number(opt.dataset.level);
+    else totalQuestions = Number(opt.dataset.q);
+  }
+  updateStart();
+}
+
+function updateStart() {
+  document.getElementById("startBtn").disabled = !(level && totalQuestions);
+}
+
+/* ---------- Math Generator ---------- */
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomExpr() {
+  const ops = ['+', '-', '*', '/'];
+  let a, b;
+
+  if (level === 1) {
+    a = rand(1, 9); b = rand(1, 9);
+  } else if (level === 2) {
+    a = rand(0, 100); b = rand(1, 100);
+  } else {
+    a = rand(1, 100); b = rand(1, 100);
+  }
+
+  let op = ops[Math.floor(Math.random() * ops.length)];
+  let expr = `${a} ${op} ${b}`;
+  let val = op === '/' ? Number((a / b).toFixed(2)) : eval(expr);
+  return { expr, val };
+}
+
+/* ---------- Game Flow ---------- */
+document.getElementById("startBtn").onclick = startTest;
+
+function startTest() {
+  currentQ = 0;
+  score = 0;
+  document.getElementById("score").innerText = score;
+  document.getElementById("qtotal").innerText = totalQuestions;
+
+  document.getElementById("selectScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  nextQuestion();
+}
+
+function nextQuestion() {
+  clearInterval(timer);
+
+  if (currentQ >= totalQuestions) {
+    finishTest();
+    return;
+  }
+
+  currentQ++;
+  timeLeft = 14;
+  values = [];
+  selected = [];
+
+  document.getElementById("qno").innerText = currentQ;
+  document.getElementById("timer").innerText = timeLeft + "s";
+  document.getElementById("game").innerHTML = "";
+
+  for (let i = 0; i < 3; i++) {
+    let q = randomExpr();
+    values.push(q.val);
+
+    let div = document.createElement("div");
+    div.className = "bubble";
+    div.innerText = q.expr;
+    div.onclick = () => toggleBubble(div, q.val);
+    document.getElementById("game").appendChild(div);
+  }
+
+  timer = setInterval(() => {
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft + "s";
+    if (timeLeft === 0) {
+      clearInterval(timer);
+      nextQuestion();
+    }
+  }, 1000);
+}
+
+/* ---------- Bubble Select / Deselect ---------- */
+function toggleBubble(div, value) {
+  if (div.classList.contains("selected")) {
+    div.classList.remove("selected");
+    selected = selected.filter(v => v !== value);
+  } else {
+    div.classList.add("selected");
+    selected.push(value);
+  }
+
+  if (selected.length === values.length) {
+    clearInterval(timer);
+    let correct = [...values].sort((a,b)=>a-b);
+    if (JSON.stringify(selected) === JSON.stringify(correct)) {
+      score++;
+      document.getElementById("score").innerText = score;
+    }
+    setTimeout(nextQuestion, 500);
+  }
+}
+
+/* ---------- Finish ---------- */
+function finishTest() {
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+
+  let accuracy = Math.round((score / totalQuestions) * 100);
+  document.getElementById("result").innerHTML =
+    "✅ Test Completed<br><br>" +
+    "Level: " + level + "<br>" +
+    "Score: " + score + " / " + totalQuestions + "<br>" +
+    "Accuracy: " + accuracy + "%";
+}
+
+/* ---------- Restart ---------- */
+function restart() {
+  clearInterval(timer);
+  level = null;
+  totalQuestions = null;
+  document.querySelectorAll('.opt').forEach(o => o.classList.remove('active'));
+  document.getElementById("startBtn").disabled = true;
+
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("selectScreen").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
