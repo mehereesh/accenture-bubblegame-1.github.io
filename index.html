@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <title>Accenture Bubbles Practice</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO / Google -->
 <meta name="robots" content="index, follow">
-<meta name="description" content="Accenture cognitive bubbles game practice with timer, levels, score and accuracy.">
+<meta name="description" content="Accenture cognitive bubbles game practice with timer, difficulty levels, score and accuracy. Safe educational web application.">
 <meta name="keywords" content="Accenture cognitive test, bubbles game practice, Accenture assessment, psychometric test practice">
 <meta name="author" content="Mehereesh">
 <meta name="google-site-verification" content="AqyQW877sf9VAA1EAV32Ga_bukpJH7fTXJFvY-WgdJE" />
@@ -31,7 +33,12 @@ body {
 .hidden { display: none; }
 
 h2 { margin: 10px 0; }
-.sub { font-size: 14px; color: #555; }
+
+.sub {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+}
 
 /* Buttons */
 button {
@@ -43,9 +50,21 @@ button {
   cursor: pointer;
 }
 
-button.primary { background: #1976D2; color: #fff; }
-button.secondary { background: #9e9e9e; color: #fff; margin-top: 10px; }
-button:disabled { background: #bdbdbd; cursor: not-allowed; }
+button.primary {
+  background: #1976D2;
+  color: #fff;
+}
+
+button.secondary {
+  background: #9e9e9e;
+  color: #fff;
+  margin-top: 10px;
+}
+
+button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
 
 /* Option cards */
 .options {
@@ -105,8 +124,11 @@ button:disabled { background: #bdbdbd; cursor: not-allowed; }
   transition: 0.2s;
 }
 
-.bubble.selected { background: #ff5722; }
+.bubble.selected {
+  background: #ff5722;
+}
 
+/* Result */
 #result {
   margin-top: 20px;
   background: #fff;
@@ -121,9 +143,15 @@ button:disabled { background: #bdbdbd; cursor: not-allowed; }
 
 <div class="container">
 
-<!-- ===== SELECTION SCREEN ===== -->
+<!-- ================= SELECTION SCREEN ================= -->
 <div id="selectScreen">
   <h2>🫧 Accenture Bubbles</h2>
+
+  <p style="font-size:14px;color:#444;">
+    This is a safe educational web application designed to help students practice
+    Accenture cognitive assessment bubble-ordering questions.
+    No data is collected. No downloads. No external scripts.
+  </p>
 
   <div class="sub">Select Level</div>
   <div class="options" id="levelOptions">
@@ -142,7 +170,7 @@ button:disabled { background: #bdbdbd; cursor: not-allowed; }
   <button id="startBtn" class="primary" disabled>Start Test</button>
 </div>
 
-<!-- ===== GAME SCREEN ===== -->
+<!-- ================= GAME SCREEN ================= -->
 <div id="gameScreen" class="hidden">
   <div class="stats">
     <div>Q: <span id="qno">1</span>/<span id="qtotal">0</span></div>
@@ -155,7 +183,7 @@ button:disabled { background: #bdbdbd; cursor: not-allowed; }
   <button class="secondary" onclick="restart()">Restart</button>
 </div>
 
-<!-- ===== RESULT SCREEN ===== -->
+<!-- ================= RESULT SCREEN ================= -->
 <div id="resultScreen" class="hidden">
   <div id="result"></div>
   <button class="primary" onclick="restart()">Restart Practice</button>
@@ -173,11 +201,10 @@ let timer;
 let values = [];
 let selected = [];
 
-/* ---------- Option Select / Deselect ---------- */
+/* -------- Option Select / Deselect -------- */
 document.querySelectorAll('#levelOptions .opt').forEach(opt => {
   opt.onclick = () => toggleOption(opt, 'level');
 });
-
 document.querySelectorAll('#questionOptions .opt').forEach(opt => {
   opt.onclick = () => toggleOption(opt, 'question');
 });
@@ -185,7 +212,6 @@ document.querySelectorAll('#questionOptions .opt').forEach(opt => {
 function toggleOption(opt, type) {
   const isActive = opt.classList.contains('active');
   const group = opt.parentElement.querySelectorAll('.opt');
-
   group.forEach(o => o.classList.remove('active'));
 
   if (isActive) {
@@ -196,14 +222,10 @@ function toggleOption(opt, type) {
     if (type === 'level') level = Number(opt.dataset.level);
     else totalQuestions = Number(opt.dataset.q);
   }
-  updateStart();
-}
-
-function updateStart() {
   document.getElementById("startBtn").disabled = !(level && totalQuestions);
 }
 
-/* ---------- Math Generator ---------- */
+/* -------- Math Generator (SAFE – NO eval) -------- */
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -222,11 +244,17 @@ function randomExpr() {
 
   let op = ops[Math.floor(Math.random() * ops.length)];
   let expr = `${a} ${op} ${b}`;
-  let val = op === '/' ? Number((a / b).toFixed(2)) : eval(expr);
+
+  let val;
+  if (op === '+') val = a + b;
+  else if (op === '-') val = a - b;
+  else if (op === '*') val = a * b;
+  else if (op === '/') val = Number((a / b).toFixed(2));
+
   return { expr, val };
 }
 
-/* ---------- Game Flow ---------- */
+/* -------- Game Flow -------- */
 document.getElementById("startBtn").onclick = startTest;
 
 function startTest() {
@@ -279,7 +307,7 @@ function nextQuestion() {
   }, 1000);
 }
 
-/* ---------- Bubble Select / Deselect ---------- */
+/* -------- Bubble Select / Deselect -------- */
 function toggleBubble(div, value) {
   if (div.classList.contains("selected")) {
     div.classList.remove("selected");
@@ -300,7 +328,7 @@ function toggleBubble(div, value) {
   }
 }
 
-/* ---------- Finish ---------- */
+/* -------- Finish -------- */
 function finishTest() {
   document.getElementById("gameScreen").classList.add("hidden");
   document.getElementById("resultScreen").classList.remove("hidden");
@@ -313,7 +341,7 @@ function finishTest() {
     "Accuracy: " + accuracy + "%";
 }
 
-/* ---------- Restart ---------- */
+/* -------- Restart -------- */
 function restart() {
   clearInterval(timer);
   level = null;
@@ -326,11 +354,6 @@ function restart() {
   document.getElementById("selectScreen").classList.remove("hidden");
 }
 </script>
-<p style="font-size:14px;color:#444;">
-This is a safe educational web application designed to help students practice
-Accenture cognitive assessment bubble ordering questions.
-No data is collected. No downloads. No external scripts.
-</p>
 
 </body>
 </html>
