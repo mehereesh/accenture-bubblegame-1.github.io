@@ -5,10 +5,12 @@
 <title>Accenture Bubbles Practice</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- SEO / Google -->
 <meta name="robots" content="index, follow">
-<meta name="description" content="Accenture cognitive bubbles game practice with timer, levels, decimals, score and accuracy.">
-<meta name="keywords" content="Accenture bubbles game, cognitive test practice, psychometric test">
+<meta name="description" content="Accenture cognitive bubbles game practice with timer, difficulty levels, score and accuracy. Safe educational web application.">
+<meta name="keywords" content="Accenture cognitive test, bubbles game practice, Accenture assessment, psychometric test practice">
 <meta name="author" content="Mehereesh">
+<meta name="google-site-verification" content="AqyQW877sf9VAA1EAV32Ga_bukpJH7fTXJFvY-WgdJE" />
 
 <style>
 * { box-sizing: border-box; }
@@ -38,6 +40,7 @@ h2 { margin: 10px 0; }
   margin-bottom: 8px;
 }
 
+/* Buttons */
 button {
   width: 100%;
   padding: 14px;
@@ -47,10 +50,23 @@ button {
   cursor: pointer;
 }
 
-button.primary { background: #1976D2; color: #fff; }
-button.secondary { background: #9e9e9e; color: #fff; margin-top: 10px; }
-button:disabled { background: #bdbdbd; }
+button.primary {
+  background: #1976D2;
+  color: #fff;
+}
 
+button.secondary {
+  background: #9e9e9e;
+  color: #fff;
+  margin-top: 10px;
+}
+
+button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+/* Option cards */
 .options {
   display: flex;
   justify-content: space-between;
@@ -66,6 +82,7 @@ button:disabled { background: #bdbdbd; }
   font-weight: bold;
   cursor: pointer;
   border: 2px solid #e0e0e0;
+  transition: 0.2s;
 }
 
 .opt.active {
@@ -73,6 +90,7 @@ button:disabled { background: #bdbdbd; }
   background: #e3f2fd;
 }
 
+/* Game UI */
 .stats {
   display: flex;
   justify-content: space-between;
@@ -103,12 +121,14 @@ button:disabled { background: #bdbdbd; }
   justify-content: center;
   margin: 10px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .bubble.selected {
   background: #ff5722;
 }
 
+/* Result */
 #result {
   margin-top: 20px;
   background: #fff;
@@ -120,15 +140,17 @@ button:disabled { background: #bdbdbd; }
 </head>
 
 <body>
+
 <div class="container">
 
-<!-- SELECTION SCREEN -->
+<!-- ================= SELECTION SCREEN ================= -->
 <div id="selectScreen">
   <h2>🫧 Accenture Bubbles</h2>
 
   <p style="font-size:14px;color:#444;">
-    Safe educational practice game for Accenture cognitive assessment.
-    No data collection. No downloads.
+    This is a safe educational web application designed to help students practice
+    Accenture cognitive assessment bubble-ordering questions.
+    No data is collected. No downloads. No external scripts.
   </p>
 
   <div class="sub">Select Level</div>
@@ -148,7 +170,7 @@ button:disabled { background: #bdbdbd; }
   <button id="startBtn" class="primary" disabled>Start Test</button>
 </div>
 
-<!-- GAME SCREEN -->
+<!-- ================= GAME SCREEN ================= -->
 <div id="gameScreen" class="hidden">
   <div class="stats">
     <div>Q: <span id="qno">1</span>/<span id="qtotal">0</span></div>
@@ -157,18 +179,15 @@ button:disabled { background: #bdbdbd; }
   </div>
 
   <div id="game"></div>
+
   <button class="secondary" onclick="restart()">Restart</button>
 </div>
 
-<!-- RESULT SCREEN -->
+<!-- ================= RESULT SCREEN ================= -->
 <div id="resultScreen" class="hidden">
   <div id="result"></div>
   <button class="primary" onclick="restart()">Restart Practice</button>
 </div>
-
-<footer style="margin-top:25px;font-size:13px;color:#666;">
-  Developed by <strong>Mayra Tech ✨</strong>
-</footer>
 
 </div>
 
@@ -182,7 +201,7 @@ let timer;
 let values = [];
 let selected = [];
 
-/* Selection */
+/* -------- Option Select / Deselect -------- */
 document.querySelectorAll('#levelOptions .opt').forEach(opt => {
   opt.onclick = () => toggleOption(opt, 'level');
 });
@@ -206,31 +225,21 @@ function toggleOption(opt, type) {
   document.getElementById("startBtn").disabled = !(level && totalQuestions);
 }
 
-/* Random helpers */
-function randInt(min, max) {
+/* -------- Math Generator (SAFE – NO eval) -------- */
+function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function randDecimal() {
-  return Number((Math.random() * 9.9).toFixed(1));
-}
-
-/* Math generator with DECIMALS */
 function randomExpr() {
   const ops = ['+', '-', '*', '/'];
   let a, b;
 
   if (level === 1) {
-    a = randInt(1, 9);
-    b = randInt(1, 9);
-  } 
-  else if (level === 2) {
-    a = Math.random() < 0.4 ? randDecimal() : randInt(0, 100);
-    b = Math.random() < 0.4 ? randDecimal() : randInt(1, 100);
-  } 
-  else {
-    a = Math.random() < 0.6 ? randDecimal() : randInt(1, 100);
-    b = Math.random() < 0.6 ? randDecimal() : randInt(1, 100);
+    a = rand(1, 9); b = rand(1, 9);
+  } else if (level === 2) {
+    a = rand(0, 100); b = rand(1, 100);
+  } else {
+    a = rand(1, 100); b = rand(1, 100);
   }
 
   let op = ops[Math.floor(Math.random() * ops.length)];
@@ -239,13 +248,13 @@ function randomExpr() {
   let val;
   if (op === '+') val = a + b;
   else if (op === '-') val = a - b;
-  else if (op === '*') val = Number((a * b).toFixed(2));
+  else if (op === '*') val = a * b;
   else if (op === '/') val = Number((a / b).toFixed(2));
 
   return { expr, val };
 }
 
-/* Game Flow */
+/* -------- Game Flow -------- */
 document.getElementById("startBtn").onclick = startTest;
 
 function startTest() {
@@ -253,8 +262,10 @@ function startTest() {
   score = 0;
   document.getElementById("score").innerText = score;
   document.getElementById("qtotal").innerText = totalQuestions;
+
   document.getElementById("selectScreen").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
+
   nextQuestion();
 }
 
@@ -296,6 +307,7 @@ function nextQuestion() {
   }, 1000);
 }
 
+/* -------- Bubble Select / Deselect -------- */
 function toggleBubble(div, value) {
   if (div.classList.contains("selected")) {
     div.classList.remove("selected");
@@ -316,6 +328,7 @@ function toggleBubble(div, value) {
   }
 }
 
+/* -------- Finish -------- */
 function finishTest() {
   document.getElementById("gameScreen").classList.add("hidden");
   document.getElementById("resultScreen").classList.remove("hidden");
@@ -328,12 +341,14 @@ function finishTest() {
     "Accuracy: " + accuracy + "%";
 }
 
+/* -------- Restart -------- */
 function restart() {
   clearInterval(timer);
   level = null;
   totalQuestions = null;
   document.querySelectorAll('.opt').forEach(o => o.classList.remove('active'));
   document.getElementById("startBtn").disabled = true;
+
   document.getElementById("resultScreen").classList.add("hidden");
   document.getElementById("gameScreen").classList.add("hidden");
   document.getElementById("selectScreen").classList.remove("hidden");
